@@ -12,14 +12,34 @@ import Vision
 
 class ObjectTrackingViewController: UIViewController {
     
+    var input: AVCaptureDeviceInput?
+    
+    //Helper function for getting AVCaptureDevice
+    func getDevice(position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        if let devices: NSArray = (AVCaptureDevice.devices() as? NSArray)! {
+            for device in devices {
+                let deviceConverted = device as! AVCaptureDevice
+                if(deviceConverted.position == position){
+                    return deviceConverted
+                }
+            }
+        }
+        return nil
+    }
     private lazy var captureSession: AVCaptureSession = {
         let session = AVCaptureSession()
         session.sessionPreset = AVCaptureSession.Preset.photo
-        guard let backCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-            let input = try? AVCaptureDeviceInput(device: backCamera) else {
-                return session
+        
+        let camera = self.getDevice(position: .back)
+        do {
+            input = try? AVCaptureDeviceInput(device: camera!)
+        } catch let error as NSError {
+            print(error)
+            input = nil
+            
         }
-        session.addInput(input)
+        
+        session.addInput(input!)
         return session
     }()
     private lazy var cameraLayer: AVCaptureVideoPreviewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
